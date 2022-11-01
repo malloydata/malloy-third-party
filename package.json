@@ -1,0 +1,26 @@
+{
+  "name": "malloy-third-party",
+  "version": "0.0.1",
+  "description": "Malloy Third Party packages",
+  "main": "index.js",
+  "scripts": {
+    "update-duckdb": "ts-node scripts/update_duckdb"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/malloydata/malloy-third-party.git"
+  },
+  "author": "",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/malloydata/malloy-third-party/issues"
+  },
+  "homepage": "https://github.com/malloydata/malloy-third-party#readme",
+  "devDependencies": {
+    "@malloydata/db-duckdb": "*",
+    "@types/node": "^16.6.2",
+    "@types/tar-stream": "^2.2.2",
+    "tar-stream": "^2.2.0",
+    "ts-node": "^10.9.1"
+  }
+}
