@@ -20,7 +20,8 @@ import tar from "tar-stream";
 
 import duckdbPackage from "@malloydata/db-duckdb/package.json";
 
-const DUCKDB_VERSION = duckdbPackage.dependencies.duckdb;
+const DUCKDB_VERSION =
+  process.argv.length > 2 ? process.argv[2] : duckdbPackage.dependencies.duckdb;
 
 export const targetDuckDBMap: Record<string, string> = {
   "darwin-arm64": `duckdb-v${DUCKDB_VERSION}-node-v93-darwin-arm64.node`,
