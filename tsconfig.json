@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "jsx": "react",
+    "noEmit": true,
     "resolveJsonModule": true,
-    "rootDir": "scripts",
+    "rootDir": ".",
     "outDir": "dist"
   },
   "include": ["scripts"],
