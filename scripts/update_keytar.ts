@@ -1,0 +1,100 @@
+/*
+ * Copyright 2022 Google LLC
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+
+/* eslint-disable no-console */
+import * as fs from "fs";
+import * as path from "path";
+import * as zlib from "zlib";
+import fetch from "node-fetch";
+import tar from "tar-stream";
+
+import thirdPartyPackage from "../package.json";
+
+const KEYTAR_VERSION = thirdPartyPackage.devDependencies.keytar;
+
+export const targetKeytarMap: Record<string, string> = {
+  "linux-x64": `keytar-v${KEYTAR_VERSION}-napi-v3-linux-x64`,
+  "linux-arm64": `keytar-v${KEYTAR_VERSION}-napi-v3-linux-arm64`,
+  "linux-armhf": `keytar-v${KEYTAR_VERSION}-napi-v3-linux-ia32`,
+  "alpine-x64": `keytar-v${KEYTAR_VERSION}-napi-v3-linuxmusl-x64`,
+  "alpine-arm64": `keytar-v${KEYTAR_VERSION}-napi-v3-linuxmusl-arm64`,
+  "darwin-x64": `keytar-v${KEYTAR_VERSION}-napi-v3-darwin-x64`,
+  "darwin-arm64": `keytar-v${KEYTAR_VERSION}-napi-v3-darwin-arm64`,
+  "win32-x64": `keytar-v${KEYTAR_VERSION}-napi-v3-win32-x64`,
+};
+
+const fetchNode = async (target: string, file: string) => {
+  const url = `https://github.com/atom/node-keytar/releases/download/v${KEYTAR_VERSION}/${file}.tar.gz`;
+  const filePath = path.resolve(
+    path.join(
+      "third_party",
+      "github.com",
+      "atom",
+      "node-keytar",
+      `${file}.node`
+    )
+  );
+  if (fs.existsSync(filePath)) {
+    console.info(`Already exists: ${file}`);
+    return;
+  }
+  console.info(`Fetching: ${url}`);
+  const extract = tar.extract();
+  const response = await fetch(url);
+  await new Promise((resolve, reject) => {
+    try {
+      extract.on("entry", async (header, stream, next) => {
+        const outFile = fs.openSync(filePath, "w", header.mode);
+
+        for await (const chunk of stream) {
+          fs.writeFileSync(outFile, chunk);
+        }
+
+        stream.on("end", () => {
+          fs.closeSync(outFile);
+          next();
+        });
+      });
+
+      extract.on("finish", function () {
+        resolve(null);
+      });
+      extract.on("error", function (error) {
+        console.error(error);
+        reject(error);
+      });
+    } catch (error) {
+      console.error(error);
+      reject(error);
+    }
+    if (response.ok) {
+      const stream = response.body;
+      if (stream) {
+        console.info(`Reading: ${url}`);
+        stream.pipe(zlib.createGunzip()).pipe(extract);
+      }
+    } else {
+      console.error(`Failed to fetch ${url}: ${response.statusText}`);
+    }
+  });
+};
+
+(async () => {
+  const fetches: Promise<void>[] = [];
+
+  for (const [target, file] of Object.entries(targetKeytarMap)) {
+    fetches.push(fetchNode(target, file));
+  }
+
+  await Promise.allSettled(fetches);
+})();
