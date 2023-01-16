@@ -10,7 +10,7 @@
     "url": "git+https://github.com/malloydata/malloy-third-party.git"
   },
   "author": "",
-  "license": "GPL-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/malloydata/malloy-third-party/issues"
   },
